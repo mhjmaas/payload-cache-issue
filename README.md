@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Cache issue
 
-## Getting Started
+This repo is used to demonstrate a problem with the caching of images.
 
-First, run the development server:
+## Getting started
+
+Start a mongodb instance with the following command:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker run --name mongodb -p 27017:27017 --env MONGO_INITDB_ROOT_USERNAME=admin --env MONGO_INITDB_ROOT_PASSWORD=password -d mongo:latest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+For ease of use, i've included the .env file in the repo. with a reference to this mongodb instance.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Clone this repo and run the following command:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+pnpm install
+```
 
-## Learn More
+## Using the app
 
-To learn more about Next.js, take a look at the following resources:
+Run the app in dev mode with the following command:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Go to the admin console and create a user and upload an image in the media collection
 
-## Deploy on Vercel
+By default the app is configured to show the error at the http://localhost:3000/ page where the first image from the media collection is shown. It throws an error in the log: ERROR: TypeError: headers.set is not a function.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+To remove the error, comment out the following line in the file: '/src/collections/Media.ts' on line 17: 'modifyResponseHeaders: modifyResponseHeaders,'
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Observations
+
+When removing the 'use server' in the contents of the modifyResponseHeaders.ts file no eror is thrown while retrieving the image and it works as designed. (I see a cache control header in the response). However in the admin console an error is thrown:
+
+```
+Error: Functions cannot be passed directly to Client Components unless you explicitly expose it by marking it with "use server". Or maybe you meant to call this function rather than return it.
+```
+
+Adding the use server does throw the other error in the log and there is no working caching and the image is not shown.
+
+My guess is it should work without the 'use server' in the modifyResponseHeaders.ts file and that the error in the admin console is a bug.

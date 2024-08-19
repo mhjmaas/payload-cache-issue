@@ -1,6 +1,17 @@
+import configPromise from "@payload-config";
+import { getPayloadHMR } from "@payloadcms/next/utilities";
 import Image from "next/image";
 
-export default function Home() {
+export default async function Home() {
+  const payload = await getPayloadHMR({ config: configPromise });
+
+  const media = await payload.find({
+    collection: "media",
+    pagination: false,
+    limit: 1,
+  });
+
+  const firstImage = media.docs.length ? media.docs[0] : undefined;
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
@@ -15,15 +26,32 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
+            {firstImage && (
+              <>
+                Cached image using nextjs:
+                <Image
+                  src={firstImage.url!}
+                  alt={firstImage.alt}
+                  className="rounded-full"
+                  width={400}
+                  height={300}
+                  priority
+                />
+              </>
+            )}
+
+            {firstImage && (
+              <>
+                Regular image not using nextjs ( and should be cached as well):
+                <img
+                  src={firstImage.url!}
+                  alt={firstImage.alt}
+                  className="rounded-full"
+                  width={400}
+                  height={300}
+                ></img>
+              </>
+            )}
           </a>
         </div>
       </div>
